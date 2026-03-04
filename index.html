@@ -55,13 +55,24 @@ padding:40px;
 
 .box{
 background:#0b1420;
-border:2px solid #f2b400;
+border:2px solid #00ff88;
 border-radius:15px;
 width:280px;
 padding:25px;
+animation:neonGlow 2s infinite alternate;
 }
 
-.box h3{
+@keyframes neonGlow{
+0%{
+box-shadow:0 0 5px #00ff88,0 0 10px #00ff88;
+}
+
+100%{
+box-shadow:0 0 20px #00ff88,0 0 40px #00ff88;
+}
+}
+
+ h3{
 color:#f2b400;
 }
 
