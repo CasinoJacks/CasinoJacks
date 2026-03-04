@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>JACKS ANALİZ PROGRAMI</title>
+
+  <style>
+    :root{
+      --bg1:#050015;
+      --bg2:#12002a;
+      --line:#d6c7a3;
+      --white:#f4f4f4;
+      --red:#d31818;
+      --green:#0a8a3a;
+      --gold:#f3d27a;
+      --cyan:#7ad9ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      color:var(--white);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+      background:
+        radial-gradient(900px 520px at 70% 30%, rgba(120,0,255,.20), transparent 60%),
+        radial-gradient(700px 420px at 25% 70%, rgba(0,180,255,.12), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+    }
+
+    .app{
+      width:min(1100px, 96vw);
+      border-radius:18px;
+      padding:16px 16px 22px;
+      background:rgba(0,0,0,.28);
+      box-shadow:0 18px 40px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+
+    .title-panel{
+      border-radius:18px;
+      padding:18px 20px;
+      border:2px solid rgba(120,220,255,.55);
+      background:linear-gradient(180deg, rgba(10,6,26,.78), rgba(10,6,26,.38));
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .title-panel .left{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .title-panel .title{
+      font-size:34px;
+      letter-spacing:1px;
+      text-transform:uppercase;
+    }
+    .title-panel .subtitle{
+      font-size:28px;
+      letter-spacing:.5px;
+      opacity:.95;
+      text-transform:uppercase;
+    }
+    .title-panel .right-badge{
+      width:260px;
+      height:74px;
+      border-radius:14px;
+      background:
+        radial-gradient(120px 70px at 30% 50%, rgba(0,200,255,.30), transparent 60%),
+        linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.14);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      opacity:.9;
+      user-select:none;
+      white-space:nowrap;
+    }
+
+    .stage{ margin-top:14px; display:flex; flex-direction:column; gap:14px; }
+
+    .grid-wrap{
+      background:rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      padding:10px 10px 14px;
+    }
+
+    table.roulette{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      font-weight:900;
+      text-transform:uppercase;
+      color:#f4f1ea;
+    }
+    table.roulette td{
+      border:2px solid rgba(215,199,163,.85);
+      text-align:center;
+      padding:10px 6px;
+      background:rgba(0,0,0,.65);
+      position:relative;
+    }
+
+    td.zero{
+      width:56px;
+      color:#34d06f;
+      font-size:26px;
+    }
+
+    .cell-btn{
+      all:unset;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      height:100%;
+      cursor:pointer;
+      padding:2px 0;
+      border-radius:8px;
+      user-select:none;
+      position:relative;
+      z-index:1;
+    }
+
+    /* sayı renkleri */
+    .num.red{ color:#ff3b3b; }
+    .num.black{ color:#f4f1ea; }
+    .num.green{ color:#34d06f; }
+
+    /* basılan sayı hafif beyaz */
+    td.active{
+      background:rgba(255,255,255,.20) !important;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.25);
+    }
+
+    .right-pay{ width:62px; font-size:14px; letter-spacing:1px; color:#e9dfc8; }
+
+    /* Sarı pul (chip) */
+    .chip{
+      position:absolute;
+      width:22px;
+      height:22px;
+      border-radius:50%;
+      left:8px;
+      top:50%;
+      transform:translateY(-50%);
+      background: radial-gradient(circle at 35% 30%, #fff6bf 0%, #ffd34d 35%, #f0a800 75%, #b97900 100%);
+      border:2px solid rgba(255,255,255,.55);
+      box-shadow: 0 0 10px rgba(255,208,76,.75);
+      z-index:2;
+    }
+    .chip:after{
+      content:"";
+      position:absolute;
+      inset:4px;
+      border-radius:50%;
+      border:2px dashed rgba(255,255,255,.55);
+      opacity:.85;
+    }
+
+    /* RACETRACK */
+    .track{
+      background:rgba(0,0,0,.42);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      padding:14px;
+    }
+    .track-inner{
+      position:relative;
+      height:240px;
+      border-radius:140px;
+      background:rgba(0,0,0,.55);
+      border:4px solid rgba(255,255,255,.10);
+      box-shadow: inset 0 0 0 8px rgba(255,255,255,.04);
+      overflow:hidden;
+    }
+    .slots{
+      position:absolute;
+      inset:12px;
+      border-radius:140px;
+      border:3px solid rgba(255,255,255,.10);
+    }
+
+    .slot{
+      position:absolute;
+      width:56px; height:40px;
+      border-radius:8px;
+      border:2px solid rgba(255,255,255,.16);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      background:rgba(0,0,0,.75);
+      box-shadow: 0 6px 14px rgba(0,0,0,.45);
+      user-select:none;
+    }
+    .slot.red{ background: rgba(211,24,24,.85); }
+    .slot.black{ background: rgba(20,20,20,.90); }
+    .slot.green{ background: rgba(10,138,58,.90); }
+
+    /* çarkta seçilen 7 sayı altın yanma */
+    .slot.hl{
+      border-color: rgba(243,210,122,.95);
+      box-shadow: 0 0 0 2px rgba(243,210,122,.35), 0 8px 18px rgba(0,0,0,.55);
+      filter: brightness(1.15);
+    }
+
+    .zones{
+      position:absolute;
+      inset:56px 110px;
+      border-radius:120px;
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr 140px;
+      gap:10px;
+    }
+    .zone{
+      border-radius:22px;
+      background:rgba(255,255,255,.03);
+      border:2px solid rgba(255,255,255,.10);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      font-size:22px;
+      color:rgba(255,255,255,.85);
+    }
+
+    @media (max-width: 920px){
+      .title-panel .title{font-size:28px}
+      .title-panel .subtitle{font-size:22px}
+      .title-panel .right-badge{display:none}
+      .track-inner{height:220px}
+      .zones{inset:56px 90px}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <div class="title-panel">
+      <div class="left">
+        <div class="title">JACKS ANALİZ PROGRAMI</div>
+        <div class="subtitle" id="komsularText">KOMŞULAR: -</div>
+      </div>
+      <div class="right-badge">🎰 Standart Rulet</div>
+    </div>
+
+    <div class="stage">
+      <div class="grid-wrap">
+        <table class="roulette" id="topTable">
+          <tr>
+            <td class="zero" rowspan="3"><button class="cell-btn num green" data-n="0">0</button></td>
+
+            <td><button class="cell-btn num red" data-n="3">3</button></td>
+            <td><button class="cell-btn num black" data-n="6">6</button></td>
+            <td><button class="cell-btn num red" data-n="9">9</button></td>
+            <td><button class="cell-btn num red" data-n="12">12</button></td>
+            <td><button class="cell-btn num black" data-n="15">15</button></td>
+            <td><button class="cell-btn num red" data-n="18">18</button></td>
+            <td><button class="cell-btn num red" data-n="21">21</button></td>
+            <td><button class="cell-btn num black" data-n="24">24</button></td>
+            <td><button class="cell-btn num red" data-n="27">27</button></td>
+            <td><button class="cell-btn num red" data-n="30">30</button></td>
+            <td><button class="cell-btn num black" data-n="33">33</button></td>
+            <td><button class="cell-btn num red" data-n="36">36</button></td>
+            <td class="right-pay">2 TO 1</td>
+          </tr>
+
+          <tr>
+            <td><button class="cell-btn num black" data-n="2">2</button></td>
+            <td><button class="cell-btn num red" data-n="5">5</button></td>
+            <td><button class="cell-btn num black" data-n="8">8</button></td>
+            <td><button class="cell-btn num black" data-n="11">11</button></td>
+            <td><button class="cell-btn num red" data-n="14">14</button></td>
+            <td><button class="cell-btn num black" data-n="17">17</button></td>
+            <td><button class="cell-btn num black" data-n="20">20</button></td>
+            <td><button class="cell-btn num red" data-n="23">23</button></td>
+            <td><button class="cell-btn num black" data-n="26">26</button></td>
+            <td><button class="cell-btn num black" data-n="29">29</button></td>
+            <td><button class="cell-btn num red" data-n="32">32</button></td>
+            <td><button class="cell-btn num black" data-n="35">35</button></td>
+            <td class="right-pay">2 TO 1</td>
+          </tr>
+
+          <tr>
+            <td><button class="cell-btn num red" data-n="1">1</button></td>
+            <td><button class="cell-btn num black" data-n="4">4</button></td>
+            <td><button class="cell-btn num red" data-n="7">7</button></td>
+            <td><button class="cell-btn num black" data-n="10">10</button></td>
+            <td><button class="cell-btn num black" data-n="13">13</button></td>
+            <td><button class="cell-btn num red" data-n="16">16</button></td>
+            <td><button class="cell-btn num red" data-n="19">19</button></td>
+            <td><button class="cell-btn num black" data-n="22">22</button></td>
+            <td><button class="cell-btn num red" data-n="25">25</button></td>
+            <td><button class="cell-btn num black" data-n="28">28</button></td>
+            <td><button class="cell-btn num black" data-n="31">31</button></td>
+            <td><button class="cell-btn num red" data-n="34">34</button></td>
+            <td class="right-pay">2 TO 1</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="track">
+        <div class="track-inner">
+          <div class="slots" id="slots"></div>
+          <div class="zones">
+            <div class="zone">Tier</div>
+            <div class="zone">Orphelins</div>
+            <div class="zone">Voisins</div>
+            <div class="zone">Zero</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Senin verdiğin 3'lü komşu listesi (KOMŞULAR yazısı + sarı pullar)
+  const ANALIZ = {
+    0:[18,24,36],
+    1:[11,12,21],
+    2:[17,18,24],
+    3:[4,9,23],
+    4:[5,6,7],
+    5:[20,25,35],
+    6:[4,12,16],
+    7:[4,14,27],
+    8:[1,21,35],
+    9:[19,28,36],
+    10:[0,25,29],
+    11:[21,22,24],
+    12:[1,21,36],
+    13:[9,17,26],
+    14:[23,28,32],
+    15:[0,8,31],
+    16:[6,28,32],
+    17:[2,22,35],
+    18:[19,31,36],
+    19:[29,32,36],
+    20:[9,21,35],
+    21:[11,12,20],
+    22:[23,25,26],
+    23:[6,18,32],
+    24:[4,7,26],
+    25:[0,7,14],
+    26:[10,13,31],
+    27:[9,12,19],
+    28:[4,14,28],
+    29:[11,22,33],
+    30:[15,31,35],
+    31:[5,26,34],
+    32:[3,9,23],
+    33:[4,11,22],
+    34:[12,21,31],
+    35:[4,9,27],
+    36:[16,19,29]
+  };
+
+  // Standart Avrupa çark sırası (komşu ±3 = 7 sayı)
+  const WHEEL = [
+    0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30,
+    8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7,
+    28, 12, 35, 3, 26
+  ];
+
+  const redSet = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+
+  function slotClass(n){
+    if (n === 0) return "green";
+    if (redSet.has(n)) return "red";
+    return "black";
+  }
+
+  // Çark slotlarını çiz
+  const slots = document.getElementById("slots");
+  const slotEls = new Map();
+
+  const W = 900, H = 360;
+  const cx = W/2, cy = H/2;
+  const rx = 390, ry = 140;
+
+  WHEEL.forEach((n, i) => {
+    const t = (i / WHEEL.length) * Math.PI * 2;
+    const x = cx + Math.cos(t) * rx;
+    const y = cy + Math.sin(t) * ry;
+
+    const el = document.createElement("div");
+    el.className = `slot ${slotClass(n)}`;
+    el.textContent = n;
+    el.style.left = `calc(${(x/W)*100}% - 28px)`;
+    el.style.top  = `calc(${(y/H)*100}% - 20px)`;
+
+    slots.appendChild(el);
+    slotEls.set(n, el);
+  });
+
+  // Üst tablo hücrelerini bulmak için map
+  const cellByNumber = new Map();
+  document.querySelectorAll("#topTable button[data-n]").forEach(btn=>{
+    const n = Number(btn.dataset.n);
+    cellByNumber.set(n, btn.closest("td"));
+  });
+
+  const komsularText = document.getElementById("komsularText");
+
+  function clearAll(){
+    // üst tabloda active temizle
+    cellByNumber.forEach(td => td.classList.remove("active"));
+
+    // tüm chipleri kaldır
+    document.querySelectorAll(".chip").forEach(c => c.remove());
+
+    // çark highlight temizle
+    slotEls.forEach(el => el.classList.remove("hl"));
+  }
+
+  function getWheelNeighbors7(n){
+    const idx = WHEEL.indexOf(n);
+    const out = [];
+    for (let d=-3; d<=3; d++){
+      const j = (idx + d + WHEEL.length) % WHEEL.length;
+      out.push(WHEEL[j]);
+    }
+    return out;
+  }
+
+  function setActive(n){
+    clearAll();
+
+    // basılan sayı active olsun
+    const td = cellByNumber.get(n);
+    if (td) td.classList.add("active");
+
+    // KOMŞULAR yazısı + sarı pullar (3 sayı)
+    const three = ANALIZ[n] || [];
+    komsularText.textContent = `KOMŞULAR: ${three.join(" - ") || "-"}`;
+
+    three.forEach(x=>{
+      const tdx = cellByNumber.get(x);
+      if (!tdx) return;
+      const chip = document.createElement("div");
+      chip.className = "chip";
+      tdx.appendChild(chip);
+    });
+
+    // çarkta ±3 (7 sayı) highlight
+    const seven = getWheelNeighbors7(n);
+    seven.forEach(x=>{
+      const el = slotEls.get(x);
+      if (el) el.classList.add("hl");
+    });
+  }
+
+  // tıklama bağla
+  document.getElementById("topTable").addEventListener("click", (e)=>{
+    const btn = e.target.closest("button[data-n]");
+    if(!btn) return;
+    setActive(Number(btn.dataset.n));
+  });
+
+  // ilk açılışta örnek
+  setActive(15);
+</script>
+
+</body>
+</html>
